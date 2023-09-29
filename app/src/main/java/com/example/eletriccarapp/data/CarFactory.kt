@@ -12,4 +12,6 @@ object CarFactory {
         Carro(1,"RS 360.000,00","370 kWh", "280 cv", "27 min", "www.google.com.br"),
         Carro(1,"RS 453.000,00","400 kWh", "400 cv", "25 min", "www.google.com.br")
     )
+
+    // 
 }
