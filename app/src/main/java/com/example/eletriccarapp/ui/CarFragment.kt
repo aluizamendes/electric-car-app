@@ -5,17 +5,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.example.eletriccarapp.R
 import com.example.eletriccarapp.data.CarFactory
 import com.example.eletriccarapp.presentation.CalcularAutonomiaActivity
 import com.example.eletriccarapp.presentation.adapter.CarAdapter
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class CarFragment : Fragment() {
 
-    lateinit var btnRedirect: Button
+    lateinit var fabCalcular: FloatingActionButton
     lateinit var listaCarros: RecyclerView
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,10 +29,11 @@ class CarFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupView(view)
         setupList()
+        setupListener()
     }
 
     fun setupView(view: View) {
-        btnRedirect = view.findViewById(R.id.btn_redirecionar)
+        fabCalcular = view.findViewById(R.id.fab_calcular)
         listaCarros = view.findViewById(R.id.rv_lista_carros)
     }
 
@@ -45,9 +46,9 @@ class CarFragment : Fragment() {
     }
 
     fun setupListener() {
-        btnRedirect.setOnClickListener {
+        fabCalcular.setOnClickListener {
             // definir uma intenção: de onde, e para onde irá ser direcionado
-            //startActivity(Intent(this, CalcularAutonomiaActivity::class.java))
+            startActivity(Intent(context, CalcularAutonomiaActivity::class.java))
         }
     }
 }
