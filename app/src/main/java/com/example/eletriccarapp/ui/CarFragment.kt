@@ -1,13 +1,19 @@
 package com.example.eletriccarapp.ui
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.loader.content.AsyncTaskLoader
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +37,8 @@ class CarFragment : Fragment() {
     lateinit var fabCalcular: FloatingActionButton
     lateinit var listaCarros: RecyclerView
     lateinit var progressBar: ProgressBar
+    lateinit var noInternetImage: ImageView
+    lateinit var noInternetText: TextView
 
     var carrosArray: ArrayList<Carro> = ArrayList()
 
@@ -46,13 +54,26 @@ class CarFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupView(view)
         setupListener()
-        callService()
+        if (checkForInternet(context)) {
+            callService()
+        } else {
+            emptyState()
+        }
+    }
+
+    fun emptyState() {
+        progressBar.visibility = View.GONE
+        listaCarros.visibility = View.GONE
+        noInternetImage.visibility = View.VISIBLE
+        noInternetText.visibility = View.VISIBLE
     }
 
     fun setupView(view: View) {
         fabCalcular = view.findViewById(R.id.fab_calcular)
         listaCarros = view.findViewById(R.id.rv_lista_carros)
         progressBar = view.findViewById(R.id.pb_loader)
+        noInternetImage = view.findViewById(R.id.iv_empty_state)
+        noInternetText = view.findViewById(R.id.tv_no_wifi)
     }
 
     fun setupList() {
@@ -73,6 +94,27 @@ class CarFragment : Fragment() {
 
     fun callService() {
         GetCarInformations().execute("https://igorbag.github.io/cars-api/cars.json")
+    }
+
+    fun checkForInternet(context: Context?): Boolean {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+            return when {
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                else -> false
+            }
+
+        } else {
+            @Suppress("DEPRECATION")
+            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+            @Suppress("DEPRECATION")
+            return networkInfo.isConnected
+        }
     }
 
     inner class GetCarInformations : AsyncTask<String, String, String>() {
@@ -116,7 +158,7 @@ class CarFragment : Fragment() {
         override fun onProgressUpdate(vararg values: String?) {
             try {
                 // converter pra um array de json
-                val jsonArray= JSONTokener(values[0]).nextValue() as JSONArray
+                val jsonArray = JSONTokener(values[0]).nextValue() as JSONArray
 
                 for (i in 0 until jsonArray.length()) {
                     val id = jsonArray.getJSONObject(i).getString("id")
@@ -129,8 +171,6 @@ class CarFragment : Fragment() {
                     val potencia = jsonArray.getJSONObject(i).getString("potencia")
                     val recarga = jsonArray.getJSONObject(i).getString("recarga")
                     val urlPhoto = jsonArray.getJSONObject(i).getString("urlPhoto")
-
-
 
                     val modelo = Carro(
                         id = id.toInt(),
@@ -148,6 +188,9 @@ class CarFragment : Fragment() {
                 }
 
                 progressBar.visibility = View.GONE // depois de carregar os dados, a barra desaparece
+                noInternetImage.visibility = View.GONE
+                noInternetText.visibility = View.GONE
+
                 setupList()
 
             } catch (ex: Exception) {
