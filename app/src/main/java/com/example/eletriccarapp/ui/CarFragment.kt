@@ -14,11 +14,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.loader.content.AsyncTaskLoader
 import androidx.recyclerview.widget.RecyclerView
 import com.example.eletriccarapp.R
 import com.example.eletriccarapp.data.CarFactory
+import com.example.eletriccarapp.data.CarsApi
 import com.example.eletriccarapp.domain.Carro
 import com.example.eletriccarapp.presentation.CalcularAutonomiaActivity
 import com.example.eletriccarapp.presentation.adapter.CarAdapter
@@ -26,6 +28,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -39,6 +47,7 @@ class CarFragment : Fragment() {
     lateinit var progressBar: ProgressBar
     lateinit var noInternetImage: ImageView
     lateinit var noInternetText: TextView
+    lateinit var carsApi: CarsApi
 
     var carrosArray: ArrayList<Carro> = ArrayList()
 
@@ -52,13 +61,48 @@ class CarFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupRetrofit()
         setupView(view)
         setupListener()
+
         if (checkForInternet(context)) {
-            callService()
+            // callService() -> a outra forma de chamar serviço
+            getAllCars()
         } else {
             emptyState()
         }
+    }
+
+    fun setupRetrofit() {
+        val url = "https://igorbag.github.io/cars-api/"
+        val retrofit = Retrofit.Builder().baseUrl(url).addConverterFactory(GsonConverterFactory.create()).build()
+        carsApi = retrofit.create(CarsApi::class.java)
+    }
+
+    fun getAllCars() {
+        carsApi.getAllCars().enqueue(object : Callback<List<Carro>> {
+
+            override fun onResponse(call: Call<List<Carro>>, response: Response<List<Carro>>) {
+
+                if (response.isSuccessful) {
+                    progressBar.visibility = View.GONE // depois de carregar os dados, a barra desaparece
+                    noInternetImage.visibility = View.GONE
+                    noInternetText.visibility = View.GONE
+
+                    response.body()?.let {
+                        setupList(it)
+                    }
+                } else {
+                    Toast.makeText(context, R.string.response_error, Toast.LENGTH_LONG).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<Carro>>, t: Throwable) {
+
+            }
+
+        })
     }
 
     fun emptyState() {
@@ -76,19 +120,23 @@ class CarFragment : Fragment() {
         noInternetText = view.findViewById(R.id.tv_no_wifi)
     }
 
-    fun setupList() {
+    fun setupList(lista: List<Carro>) {
 
         listaCarros.visibility = View.VISIBLE
 
         // criar um adapter
-        val adapter = CarAdapter(carrosArray)
+        val adapter = CarAdapter(lista)
         listaCarros.adapter = adapter
+
+        adapter.carItemListener = { carro ->
+            val bateria = carro.bateria
+        }
     }
 
     fun setupListener() {
         fabCalcular.setOnClickListener {
             // definir uma intenção: de onde, e para onde irá ser direcionado
-//            startActivity(Intent(context, CalcularAutonomiaActivity::class.java))
+            startActivity(Intent(context, CalcularAutonomiaActivity::class.java))
         }
     }
 
@@ -117,6 +165,7 @@ class CarFragment : Fragment() {
         }
     }
 
+    // Utilizar o retrofit como abstração do async task
     inner class GetCarInformations : AsyncTask<String, String, String>() {
         fun OnPreExecute() {
             super.onPreExecute()
@@ -178,7 +227,8 @@ class CarFragment : Fragment() {
                         bateria = bateria,
                         potencia = potencia,
                         recarga = recarga,
-                        urlFoto = urlPhoto
+                        urlFoto = urlPhoto,
+                        isFavorite = false
                     )
 
                     // adiciona para o array de carro
@@ -191,7 +241,7 @@ class CarFragment : Fragment() {
                 noInternetImage.visibility = View.GONE
                 noInternetText.visibility = View.GONE
 
-                setupList()
+                // setupList()
 
             } catch (ex: Exception) {
                 Log.e("Erro ->", ex.message.toString())

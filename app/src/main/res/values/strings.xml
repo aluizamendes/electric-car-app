@@ -11,6 +11,9 @@
     <string name="km_percorrido">Km percorrido</string>
     <string name="btn_calcular">Calcular</string>
     <string name="sem_conexao">Conexão com internet não disponível :(</string>
+    <string name="response_error">Algo deu errado. Tente novamente mais tarde</string>
+    <string name="saved_calc">saved_calc</string>
+
     <string-array name="array_cidades">
         <item>Araraquara</item>
         <item>Salvador</item>
