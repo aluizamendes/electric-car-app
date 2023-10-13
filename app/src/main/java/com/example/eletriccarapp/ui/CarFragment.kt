@@ -1,5 +1,6 @@
 package com.example.eletriccarapp.ui
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -21,6 +22,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.eletriccarapp.R
 import com.example.eletriccarapp.data.CarFactory
 import com.example.eletriccarapp.data.CarsApi
+import com.example.eletriccarapp.data.local.CarRepository
+import com.example.eletriccarapp.data.local.CarrosContract
+import com.example.eletriccarapp.data.local.CarsDbHelper
 import com.example.eletriccarapp.domain.Carro
 import com.example.eletriccarapp.presentation.CalcularAutonomiaActivity
 import com.example.eletriccarapp.presentation.adapter.CarAdapter
@@ -119,7 +123,6 @@ class CarFragment : Fragment() {
         noInternetImage = view.findViewById(R.id.iv_empty_state)
         noInternetText = view.findViewById(R.id.tv_no_wifi)
     }
-
     fun setupList(lista: List<Carro>) {
 
         listaCarros.visibility = View.VISIBLE
@@ -129,9 +132,10 @@ class CarFragment : Fragment() {
         listaCarros.adapter = adapter
 
         adapter.carItemListener = { carro ->
-            val bateria = carro.bateria
+            val isSaved = CarRepository(requireContext()).saveIfNotExist(carro)
         }
     }
+
 
     fun setupListener() {
         fabCalcular.setOnClickListener {
@@ -227,7 +231,7 @@ class CarFragment : Fragment() {
                         bateria = bateria,
                         potencia = potencia,
                         recarga = recarga,
-                        urlFoto = urlPhoto,
+                        urlPhoto = urlPhoto,
                         isFavorite = false
                     )
 
@@ -248,4 +252,6 @@ class CarFragment : Fragment() {
             }
         }
     }
+
+
 }

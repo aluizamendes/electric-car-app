@@ -10,7 +10,7 @@ import com.example.eletriccarapp.R
 import com.example.eletriccarapp.domain.Carro
 import org.w3c.dom.Text
 
-class CarAdapter(private val carros: List<Carro>) : RecyclerView.Adapter<CarAdapter.ViewHolder>() {
+class CarAdapter(private val carros: List<Carro>, private val isFavoriteScreen: Boolean = false) : RecyclerView.Adapter<CarAdapter.ViewHolder>() {
 
     var carItemListener: (Carro) -> Unit = {}
 
@@ -26,22 +26,25 @@ class CarAdapter(private val carros: List<Carro>) : RecyclerView.Adapter<CarAdap
         holder.bateria.text = carros[position].bateria
         holder.potencia.text = carros[position].potencia
         holder.recarga.text = carros[position].recarga
+
+        if (isFavoriteScreen) {
+            holder.favorito.setImageResource(R.drawable.ic_star_fill)
+        }
+
         holder.favorito.setOnClickListener{
             val carro = carros[position]
             carItemListener(carro)
             setupFavorite(carro, holder)
         }
-
     }
 
     private fun setupFavorite(carro: Carro, holder: ViewHolder) {
-        carro.isFavorite = !carro.isFavorite
-
-        if (carro.isFavorite) {
-            holder.favorito.setImageResource(R.drawable.ic_star_fill)
-        } else {
-            holder.favorito.setImageResource(R.drawable.ic_star_outline)
-        }
+            carro.isFavorite = !carro.isFavorite
+            if (carro.isFavorite) {
+                holder.favorito.setImageResource(R.drawable.ic_star_fill)
+            } else {
+                holder.favorito.setImageResource(R.drawable.ic_star_outline)
+            }
     }
 
     // quantidade de itens da lista
