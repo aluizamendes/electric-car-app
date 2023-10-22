@@ -46,7 +46,6 @@ import java.net.URL
 
 class CarFragment : Fragment() {
 
-    lateinit var fabCalcular: FloatingActionButton
     lateinit var listaCarros: RecyclerView
     lateinit var progressBar: ProgressBar
     lateinit var noInternetImage: ImageView
@@ -68,7 +67,6 @@ class CarFragment : Fragment() {
 
         setupRetrofit()
         setupView(view)
-        setupListener()
 
         if (checkForInternet(context)) {
             // callService() -> a outra forma de chamar serviço
@@ -117,7 +115,6 @@ class CarFragment : Fragment() {
     }
 
     fun setupView(view: View) {
-        fabCalcular = view.findViewById(R.id.fab_calcular)
         listaCarros = view.findViewById(R.id.rv_lista_carros)
         progressBar = view.findViewById(R.id.pb_loader)
         noInternetImage = view.findViewById(R.id.iv_empty_state)
@@ -137,12 +134,7 @@ class CarFragment : Fragment() {
     }
 
 
-    fun setupListener() {
-        fabCalcular.setOnClickListener {
-            // definir uma intenção: de onde, e para onde irá ser direcionado
-            startActivity(Intent(context, CalcularAutonomiaActivity::class.java))
-        }
-    }
+
 
     fun callService() {
         GetCarInformations().execute("https://igorbag.github.io/cars-api/cars.json")
